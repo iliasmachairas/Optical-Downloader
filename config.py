@@ -18,4 +18,11 @@ band_selection = "all_bands"
 # "Cloud shadows", "Cloud medium probability", "Cloud high probability", "Thin cirrus", "Snow or ice", etc.
 excluded_flags = ["Cloud shadows", "Cloud medium probability", "Cloud high probability"]
 
+# Cloud cover percentage for the entire tile (0-100)
+# This filters tiles based on the 'eo:cloud_cover' metadata property.
+# 100 means we accept tiles with any amount of clouds.
+max_cloud_tile = 100
 
+# Days to add/subtract from selected_date to create the search window
+# The search range will be [selected_date - extra_days, selected_date + extra_days]
+extra_days = 15

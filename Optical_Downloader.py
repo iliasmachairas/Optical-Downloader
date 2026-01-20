@@ -79,11 +79,11 @@ class Optical_Downloader:
         self.dtype = dtype
         self.fill_value = fill_value
 
-    def run(self, points_list: list, date_str: str, max_cloud: int = 20):
+    def run(self, points_list: list, date_str: str, max_cloud_tile: int = 20):
         # 1) AOI + search
         aoi = AOI.from_four_points(points_list)
         print(f"[Pipeline] AOI bounds: {aoi.bounds}")
-        item = self.search.find_best_item(aoi.to_geojson, date_str, max_cloud=max_cloud)
+        item = self.search.find_best_item(aoi.to_geojson, date_str, max_cloud_tile=max_cloud_tile)
         
         # Print tile information
         if isinstance(item, dict):

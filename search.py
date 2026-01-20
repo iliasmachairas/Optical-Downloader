@@ -27,7 +27,7 @@ class SentinelSearch:
         #print(item)
         return item
 
-    def find_best_item(self, aoi_json: dict, datetime_str: str, max_cloud: int = 20):
+    def find_best_item(self, aoi_json: dict, datetime_str: str, max_cloud_tile: int = 20):
         # Build STAC search request
         search_endpoint = f"{self.stac_url}/search"
         
@@ -45,7 +45,7 @@ class SentinelSearch:
             "intersects": intersects_geom,
             "datetime": datetime_str,
             "query": {
-                "eo:cloud_cover": {"lt": max_cloud}
+                "eo:cloud_cover": {"lt": max_cloud_tile}
             },
             "limit": 1,
             "sortby": [{"field": "datetime", "direction": "desc"}]
