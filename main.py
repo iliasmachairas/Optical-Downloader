@@ -3,14 +3,14 @@ import json
 import numpy as np
 from datetime import datetime, timedelta
 from Optical_Downloader import Optical_Downloader
-from config import xmin, xmax, ymin, ymax, selected_date, max_cloud_tile, extra_days
+from config import xmin, xmax, ymin, ymax, selected_date, max_cloud_tile, extra_days, max_cloud_tolerance, platform
 from aoi import AOI 
 
 
 def main():
     pipeline = Optical_Downloader(
         stac_url="https://planetarycomputer.microsoft.com/api/stac/v1",
-        collection="sentinel-2-l2a",
+        collection=platform,
     )
     
     try:
@@ -42,10 +42,18 @@ def main():
             points_list=selected_coords,
             date_str=date_str,
             max_cloud_tile=max_cloud_tile,
+            max_cloud_tolerance=max_cloud_tolerance,
+            platform=platform,
         )
         
         print(f"\n[Main] Pipeline completed successfully")
         print(f"[Main] [OK] Data extraction completed")
+        
+    except IOError as e:
+        print(f"\n[Main] CRITICAL ERROR: {str(e)}")
+        print(f"[Main] The output file could not be saved. Please clear some disk space and try again.")
+        import sys
+        sys.exit(1)
         
     except Exception as e:
         print(f"[Main] ERROR: {type(e).__name__}: {str(e)}")

@@ -406,15 +406,32 @@ class SentinelScene:
         dst_ds.SetProjection(self._projection)
         
         # Write bands
-        for i, band_data in enumerate(arrays, 1):
-            band = dst_ds.GetRasterBand(i)
-            band.WriteArray(band_data)
-            if nodata_value is not None:
-                band.SetNoDataValue(nodata_value)
-            # Set band description if provided
-            if band_names is not None and i <= len(band_names):
-                band.SetDescription(band_names[i-1])
-            band.FlushCache()
-        
-        dst_ds = None  # Close dataset
-        print(f"[Scene] [OK] Saved TIFF: {output_path} ({n_bands} band(s), {width}x{height})")
+        try:
+            for i, band_data in enumerate(arrays, 1):
+                band = dst_ds.GetRasterBand(i)
+                band.WriteArray(band_data)
+                if nodata_value is not None:
+                    band.SetNoDataValue(nodata_value)
+                # Set band description if provided
+                if band_names is not None and i <= len(band_names):
+                    band.SetDescription(band_names[i-1])
+                band.FlushCache()
+            
+            dst_ds = None  # Close dataset to flush to disk
+            print(f"[Scene] [OK] Saved TIFF: {output_path} ({n_bands} band(s), {width}x{height})")
+            
+        except Exception as e:
+            # Clean up partial file
+            dst_ds = None # release file lock
+            if os.path.exists(output_path):
+                try:
+                    os.remove(output_path)
+                    print(f"[Scene] Deleted partial file due to error: {output_path}")
+                except:
+                    pass
+            
+            error_msg = str(e)
+            if "No space left on device" in error_msg or "Disk full" in error_msg:
+                raise IOError(f"Disk full! Could not save {output_path}. Please free up space.") from e
+            else:
+                raise RuntimeError(f"Failed to write TIFF: {error_msg}") from e

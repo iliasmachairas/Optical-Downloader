@@ -48,7 +48,7 @@ class SentinelSearch:
                 "eo:cloud_cover": {"lt": max_cloud_tile}
             },
             "limit": 1,
-            "sortby": [{"field": "datetime", "direction": "desc"}]
+            "sortby": [{"field": "eo:cloud_cover", "direction": "asc"}]
         }
         
         # Make POST request to STAC search endpoint
