@@ -1,79 +1,71 @@
-# search.py
+# -*- coding: utf-8 -*-
+import time
 import requests
 import json
 
+
 class SentinelSearch:
     def __init__(self, stac_url, collection):
-        self.stac_url = stac_url.rstrip('/')
+        self.stac_url   = stac_url.rstrip('/')
         self.collection = collection
-        self.sign_url = "https://planetarycomputer.microsoft.com/api/sas/v1/sign"
+        self.sign_url   = "https://planetarycomputer.microsoft.com/api/sas/v1/sign"
+        self.max_retries = 3
+        self.retry_delay = 5  # seconds between retries
 
     def _sign_asset_url(self, href):
-        """Sign a single asset URL using Planetary Computer's signing API"""
         try:
-            response = requests.get(self.sign_url, params={"href": href})
-            response.raise_for_status()
-            return response.json().get("href", href)
+            r = requests.get(self.sign_url, params={"href": href})
+            r.raise_for_status()
+            return r.json().get("href", href)
         except Exception:
-            # If signing fails, return original URL
             return href
 
     def _sign_item_assets(self, item):
-        """Sign all asset URLs in a STAC item"""
-        if "assets" in item:
-            for asset_key, asset_data in item["assets"].items():
-                if "href" in asset_data:
-                    item["assets"][asset_key]["href"] = self._sign_asset_url(asset_data["href"])
-        #print(item)
+        for asset_data in item.get("assets", {}).values():
+            if "href" in asset_data:
+                asset_data["href"] = self._sign_asset_url(asset_data["href"])
         return item
 
     def find_best_item(self, aoi_json: dict, datetime_str: str, max_cloud_tile: int = 20):
-        # Build STAC search request
-        search_endpoint = f"{self.stac_url}/search"
-        
-        # Extract geometry from GeoJSON Feature if needed
-        # STAC API expects just the geometry object, not the full Feature
-        if "geometry" in aoi_json:
-            intersects_geom = aoi_json["geometry"]
-        else:
-            # Assume it's already a geometry object
-            intersects_geom = aoi_json
-        
-        # Create search request body
-        search_body = {
+        endpoint = f"{self.stac_url}/search"
+        geom     = aoi_json.get("geometry", aoi_json)
+        body     = {
             "collections": [self.collection],
-            "intersects": intersects_geom,
-            "datetime": datetime_str,
-            "query": {
-                "eo:cloud_cover": {"lt": max_cloud_tile}
-            },
-            "limit": 1,
-            "sortby": [{"field": "eo:cloud_cover", "direction": "asc"}]
+            "intersects":  geom,
+            "datetime":    datetime_str,
+            "query":       {"eo:cloud_cover": {"lt": max_cloud_tile}},
+            "limit":       1,
+            "sortby":      [{"field": "eo:cloud_cover", "direction": "asc"}],
         }
-        
-        # Make POST request to STAC search endpoint
-        try:
-            response = requests.post(search_endpoint, json=search_body)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            # Print more detailed error information
-            error_msg = f"HTTP {response.status_code} Error: {response.text}"
-            print(f"Request body: {json.dumps(search_body, indent=2)}")
-            raise RuntimeError(f"STAC API request failed: {error_msg}") from e
-        
-        search_result = response.json()
-        #print(search_result)
-        
-        # Extract items from the response
-        items = search_result.get("features", [])
-        #print(items)
-        if not items:
-            raise RuntimeError("No Sentinel-2 items found.")
-        
-        # Get the first item
-        item = items[0]
-        
-        # Sign all asset URLs for Planetary Computer access
-        item = self._sign_item_assets(item)
-        
-        return item
+
+        last_error = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                print(f"[Search] STAC query attempt {attempt}/{self.max_retries}…")
+                r = requests.post(endpoint, json=body, timeout=60)
+                r.raise_for_status()
+                items = r.json().get("features", [])
+                if not items:
+                    raise RuntimeError(
+                        "No scenes found for the given AOI, date range, and cloud threshold.")
+                return self._sign_item_assets(items[0])
+
+            except requests.exceptions.HTTPError as e:
+                # 504 / 503 are transient — retry; anything else fail immediately
+                if r.status_code in (503, 504) and attempt < self.max_retries:
+                    print(f"[Search] Server timeout ({r.status_code}), "
+                          f"retrying in {self.retry_delay}s…")
+                    time.sleep(self.retry_delay)
+                    last_error = e
+                else:
+                    raise RuntimeError(
+                        f"STAC API error {r.status_code}: {r.text}") from e
+
+            except requests.exceptions.Timeout:
+                if attempt < self.max_retries:
+                    print(f"[Search] Request timed out, retrying in {self.retry_delay}s…")
+                    time.sleep(self.retry_delay)
+                else:
+                    raise RuntimeError("STAC API timed out after all retries.")
+
+        raise RuntimeError("STAC API failed after all retries.") from last_error
