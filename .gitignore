@@ -30,3 +30,6 @@ Thumbs.db
 output/
 *.tif
 *.tiff
+
+# Sphinx build output
+docs/_build/
