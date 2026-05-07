@@ -1,0 +1,181 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Optical Downloader &mdash; Optical Downloader 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2709fde1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Optical Downloader
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Optical Downloader</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Optical Downloader</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="optical-downloader">
+<h1>Optical Downloader<a class="headerlink" href="#optical-downloader" title="Link to this heading"></a></h1>
+<p>A QGIS 3.0+ plugin that downloads cloud-masked satellite imagery from
+<strong>Sentinel-2 L2A</strong> and <strong>Landsat 8/9 Collection 2</strong> via Microsoft Planetary
+Computer’s STAC API.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installing-python-dependencies">Installing Python dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#deploying-the-plugin">Deploying the plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#enabling-the-plugin">Enabling the plugin</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#opening-the-plugin">Opening the plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#step-1-define-the-area-of-interest">Step 1 — Define the Area of Interest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#step-2-pick-a-date">Step 2 — Pick a date</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#step-3-choose-a-platform">Step 3 — Choose a platform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#step-4-select-bands">Step 4 — Select bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#step-5-configure-cloud-masking">Step 5 — Configure cloud masking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#step-6-set-the-output-folder">Step 6 — Set the output folder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#step-7-run">Step 7 — Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#output-format">Output format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#viewing-logs">Viewing logs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#high-level-overview">High-level overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#module-reference">Module reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#external-dependencies">External dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#common-issues">Common issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#reading-the-log">Reading the log</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#reporting-bugs">Reporting bugs</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Optical Downloader lets you select a date, draw an area of interest on the
+QGIS map canvas, and receive a georeferenced, cloud-masked GeoTIFF — all
+without leaving QGIS. The download runs in a background thread so the
+interface stays responsive throughout.</p>
+<p><strong>Supported platforms</strong></p>
+<ul class="simple">
+<li><p>Sentinel-2 L2A (10 m resolution)</p></li>
+<li><p>Landsat 8/9 Collection 2 Level-2 (30 m resolution)</p></li>
+</ul>
+<p><strong>Key capabilities</strong></p>
+<ul class="simple">
+<li><p>Two-stage cloud filtering (STAC pre-filter + per-AOI tolerance check)</p></li>
+<li><p>Five maskable cloud classes using the Sentinel-2 SCL band</p></li>
+<li><p>Three band presets: RGB · RGB + NIR + SWIR · All bands</p></li>
+<li><p>Interactive rubber-band AOI drawing directly on the QGIS canvas</p></li>
+<li><p>Cloud statistics report saved alongside the output GeoTIFF</p></li>
+</ul>
+</section>
+<section id="source-code">
+<h2>Source code<a class="headerlink" href="#source-code" title="Link to this heading"></a></h2>
+<p><a class="reference external" href="https://github.com/iliasmachairas/Optical-Downloader">https://github.com/iliasmachairas/Optical-Downloader</a></p>
+</section>
+<section id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ilias Machairas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

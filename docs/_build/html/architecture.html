@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture &mdash; Optical Downloader 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2709fde1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Troubleshooting" href="troubleshooting.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Optical Downloader
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#high-level-overview">High-level overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-reference">Module reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#optical-downloader-py">optical_downloader.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optical-downloader-dialog-py">optical_downloader_dialog.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extent-tool-py">extent_tool.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#worker-py">worker.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pipeline-py">pipeline.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#search-py">search.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scene-py">scene.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#aoi-py">aoi.py</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#external-dependencies">External dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Optical Downloader</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h1>
+<section id="high-level-overview">
+<h2>High-level overview<a class="headerlink" href="#high-level-overview" title="Link to this heading"></a></h2>
+<p>The plugin is split into a thin QGIS UI layer and a framework-independent
+download pipeline. The UI layer owns all Qt and QGIS API calls; the pipeline
+has no QGIS dependency and could be run from a plain Python script.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────────────────────┐
+│                   QGIS UI layer                  │
+│                                                  │
+│  OpticalDownloader          (main plugin class)  │
+│  OpticalDownloaderDialog    (dialog + getters)   │
+│  ExtentDrawingTool          (rubber-band tool)   │
+└──────────────────────┬──────────────────────────┘
+                       │  spawns
+                       ▼
+┌─────────────────────────────────────────────────┐
+│              DownloadWorker (QThread)            │
+│  emits: progress · message · finished · error   │
+└──────────────────────┬──────────────────────────┘
+                       │  calls
+                       ▼
+┌─────────────────────────────────────────────────┐
+│         Download pipeline (pure Python)          │
+│                                                  │
+│  Optical_Downloader.run()                        │
+│    ├── AOI          (bounding box geometry)      │
+│    ├── SentinelSearch (STAC query)               │
+│    ├── SentinelScene  (band I/O, reproject)      │
+│    └── GeoTIFF output                            │
+└─────────────────────────────────────────────────┘
+</pre></div>
+</div>
+</section>
+<section id="module-reference">
+<h2>Module reference<a class="headerlink" href="#module-reference" title="Link to this heading"></a></h2>
+<section id="optical-downloader-py">
+<h3>optical_downloader.py<a class="headerlink" href="#optical-downloader-py" title="Link to this heading"></a></h3>
+<p>The main QGIS plugin class. Responsible for:</p>
+<ul class="simple">
+<li><p>Registering the toolbar action and menu entry via <code class="docutils literal notranslate"><span class="pre">initGui()</span></code></p></li>
+<li><p>Creating the dialog once and reusing it across runs</p></li>
+<li><p>Connecting all signal handlers (browse, draw, run, help)</p></li>
+<li><p>Launching <code class="docutils literal notranslate"><span class="pre">DownloadWorker</span></code> and routing its signals back to the dialog</p></li>
+</ul>
+</section>
+<section id="optical-downloader-dialog-py">
+<h3>optical_downloader_dialog.py<a class="headerlink" href="#optical-downloader-dialog-py" title="Link to this heading"></a></h3>
+<p>A thin wrapper around the Qt Designer <code class="docutils literal notranslate"><span class="pre">.ui</span></code> file. Exposes typed getter
+methods for every user input so that <code class="docutils literal notranslate"><span class="pre">optical_downloader.py</span></code> never has to
+touch raw Qt widgets:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">get_platform()</span></code> → <code class="docutils literal notranslate"><span class="pre">&quot;sentinel-2-l2a&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;landsat-c2-l2&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_band_selection()</span></code> → <code class="docutils literal notranslate"><span class="pre">&quot;rgb_only&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">&quot;rgb_nir_swir&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">&quot;all_bands&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_excluded_flags()</span></code> → list of SCL integer codes to mask</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_aoi_coords()</span></code> → <code class="docutils literal notranslate"><span class="pre">(xmin,</span> <span class="pre">ymin,</span> <span class="pre">xmax,</span> <span class="pre">ymax)</span></code> validated floats</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_selected_date()</span></code> → <code class="docutils literal notranslate"><span class="pre">datetime.date</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_max_cloud_tile()</span></code> / <code class="docutils literal notranslate"><span class="pre">get_max_cloud_tol()</span></code> → floats</p></li>
+</ul>
+</section>
+<section id="extent-tool-py">
+<h3>extent_tool.py<a class="headerlink" href="#extent-tool-py" title="Link to this heading"></a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">QgsMapTool</span></code> subclass that renders a live blue rectangle while the user
+drags. On mouse release it:</p>
+<ol class="arabic simple">
+<li><p>Transforms both corners from the canvas CRS to EPSG:4326.</p></li>
+<li><p>Normalises the bounds (handles right-to-left or bottom-to-top drags).</p></li>
+<li><p>Calls the registered callback with <code class="docutils literal notranslate"><span class="pre">(xmin,</span> <span class="pre">ymin,</span> <span class="pre">xmax,</span> <span class="pre">ymax)</span></code>.</p></li>
+</ol>
+</section>
+<section id="worker-py">
+<h3>worker.py<a class="headerlink" href="#worker-py" title="Link to this heading"></a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">QThread</span></code> subclass. Runs <code class="docutils literal notranslate"><span class="pre">Optical_Downloader.run()</span></code> off the main thread
+and translates return values / exceptions into four Qt signals:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Signal</p></th>
+<th class="head"><p>Payload</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>progress</p></td>
+<td><p>integer 0–100</p></td>
+</tr>
+<tr class="row-odd"><td><p>message</p></td>
+<td><p>status string</p></td>
+</tr>
+<tr class="row-even"><td><p>finished</p></td>
+<td><p>dict with status / path / report</p></td>
+</tr>
+<tr class="row-odd"><td><p>error</p></td>
+<td><p>traceback string</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="pipeline-py">
+<h3>pipeline.py<a class="headerlink" href="#pipeline-py" title="Link to this heading"></a></h3>
+<p>Orchestrates the ten-step download workflow:</p>
+<ol class="arabic simple">
+<li><p>Build AOI geometry from four corner points.</p></li>
+<li><p>Query STAC API for the scene with the lowest cloud cover.</p></li>
+<li><p>Extract tile ID, acquisition date, and cloud cover metadata.</p></li>
+<li><p>Instantiate <code class="docutils literal notranslate"><span class="pre">SentinelScene</span></code>.</p></li>
+<li><p>Load the QA / SCL band.</p></li>
+<li><p>Calculate valid-pixel and cloud/shadow percentages over the AOI.</p></li>
+<li><p>Optionally write a cloud statistics report.</p></li>
+<li><p>Check cloud tolerance — skip if above threshold.</p></li>
+<li><p>Download selected spectral bands.</p></li>
+<li><p>Apply cloud mask, stack bands, save GeoTIFF.</p></li>
+</ol>
+<p><strong>SCL flag mapping (Sentinel-2)</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Code</p></th>
+<th class="head"><p>Class</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>No data</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>Saturated / defective</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>Dark area pixels</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>Cloud shadows</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>Vegetation</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>Bare soils</p></td>
+</tr>
+<tr class="row-even"><td><p>6</p></td>
+<td><p>Water</p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p>Clouds — low probability</p></td>
+</tr>
+<tr class="row-even"><td><p>8</p></td>
+<td><p>Clouds — medium prob.</p></td>
+</tr>
+<tr class="row-odd"><td><p>9</p></td>
+<td><p>Clouds — high probability</p></td>
+</tr>
+<tr class="row-even"><td><p>10</p></td>
+<td><p>Thin cirrus</p></td>
+</tr>
+<tr class="row-odd"><td><p>11</p></td>
+<td><p>Snow / ice</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="search-py">
+<h3>search.py<a class="headerlink" href="#search-py" title="Link to this heading"></a></h3>
+<p>Sends a POST request to the Planetary Computer STAC <code class="docutils literal notranslate"><span class="pre">/search</span></code> endpoint:</p>
+<ul class="simple">
+<li><p>Filters by AOI geometry, date range, and <code class="docutils literal notranslate"><span class="pre">eo:cloud_cover</span></code>.</p></li>
+<li><p>Sorts results by ascending cloud cover and picks the first item.</p></li>
+<li><p>Signs all asset URLs using the Planetary Computer SAS token service.</p></li>
+<li><p>Retries up to 3 times (5-second back-off) on HTTP 503/504 and timeouts.</p></li>
+</ul>
+</section>
+<section id="scene-py">
+<h3>scene.py<a class="headerlink" href="#scene-py" title="Link to this heading"></a></h3>
+<p>Handles all raster I/O:</p>
+<ul class="simple">
+<li><p>Opens remote Cloud-Optimised GeoTIFFs via GDAL <code class="docutils literal notranslate"><span class="pre">/vsicurl/</span></code>.</p></li>
+<li><p>Reprojects and resamples to a common grid with <code class="docutils literal notranslate"><span class="pre">gdal.Warp()</span></code>
+(bilinear resampling).</p></li>
+<li><p>Converts to the requested dtype (default <code class="docutils literal notranslate"><span class="pre">float32</span></code>).</p></li>
+<li><p>Saves the final stack as a GTiff with band descriptions and a
+properly set geotransform and CRS.</p></li>
+</ul>
+</section>
+<section id="aoi-py">
+<h3>aoi.py<a class="headerlink" href="#aoi-py" title="Link to this heading"></a></h3>
+<p>Wraps a GeoJSON bounding-box polygon in a Shapely geometry object and
+exposes <code class="docutils literal notranslate"><span class="pre">.bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">.centroid</span></code>, and <code class="docutils literal notranslate"><span class="pre">.to_geojson</span></code> properties.</p>
+</section>
+</section>
+<section id="external-dependencies">
+<h2>External dependencies<a class="headerlink" href="#external-dependencies" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Dependency</p></th>
+<th class="head"><p>Used for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Planetary Computer STAC API</p></td>
+<td><p>Scene search and asset discovery</p></td>
+</tr>
+<tr class="row-odd"><td><p>Planetary Computer SAS signing service</p></td>
+<td><p>Authenticating COG download URLs</p></td>
+</tr>
+<tr class="row-even"><td><p>GDAL <code class="docutils literal notranslate"><span class="pre">/vsicurl/</span></code></p></td>
+<td><p>Streaming remote GeoTIFF reads without full copy</p></td>
+</tr>
+<tr class="row-odd"><td><p>Shapely</p></td>
+<td><p>AOI polygon geometry and bounds extraction</p></td>
+</tr>
+<tr class="row-even"><td><p>NumPy</p></td>
+<td><p>Band array masking and stacking</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="troubleshooting.html" class="btn btn-neutral float-right" title="Troubleshooting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ilias Machairas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
