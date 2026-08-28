@@ -1,0 +1,25 @@
+# Claude Code
+CLAUDE.md
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Output
+output/
+outputs/
+
+# Build artifacts
+*.zip
+build/
+dist/
+docs/_build/
+.pytest_cache/
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

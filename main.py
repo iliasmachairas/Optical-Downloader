@@ -2,7 +2,7 @@
 import json
 import numpy as np
 from datetime import datetime, timedelta
-from Optical_Downloader import Optical_Downloader
+from pipeline import Optical_Downloader
 from config import xmin, xmax, ymin, ymax, selected_date, max_cloud_tile, extra_days, max_cloud_tolerance, platform
 from aoi import AOI 
 
