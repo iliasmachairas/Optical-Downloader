@@ -39,10 +39,12 @@ echo
 # runtime). docs/ and .readthedocs.yaml are the Sphinx/Read the Docs source
 # — built and hosted separately at readthedocs.org, not needed inside QGIS.
 # help/ is the unused Plugin Builder Sphinx scaffold, superseded by docs/.
+# scripts/ is dev-only tooling (translation compile/update helpers) and, like
+# build_plugin.sh, made entirely of .sh files that trip the same scanner.
 EXCLUDES=(
-    "__pycache__" "*.pyc" ".git" ".gitignore" ".claude" "quickstart.py" "*.zip"
+    "__pycache__" "*.pyc" ".git" ".gitignore" ".claude" "CLAUDE.md" "quickstart.py" "*.zip"
     "build" "dist" ".pytest_cache" "test" "build_plugin.sh" "docs" ".readthedocs.yaml"
-    "help" "output" "outputs"
+    "help" "output" "outputs" "scripts"
 )
 
 STAGE="$(mktemp -d)"
