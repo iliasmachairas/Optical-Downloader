@@ -11,7 +11,6 @@
   <img alt="QGIS" src="https://img.shields.io/badge/QGIS-%E2%89%A5%203.0-589632" />
   <a href="https://optical-downloader.readthedocs.io/en/latest/?badge=latest"><img alt="Docs" src="https://readthedocs.org/projects/optical-downloader/badge/?version=latest" /></a>
   <img alt="Sign-in required" src="https://img.shields.io/badge/sign--in%20required-no-brightgreen" />
-  <img alt="Last commit" src="https://img.shields.io/github/last-commit/iliasmachairas/Optical-Downloader" />
 </p>
 
 A QGIS 3 plugin that searches [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/)
