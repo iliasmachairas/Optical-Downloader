@@ -8,6 +8,11 @@ from .search import SentinelSearch
 from .scene import SentinelScene
 
 
+# Below this fraction of AOI-vs-scene overlap, warn that the AOI spans more
+# than one tile and part of it is missing from the output.
+AOI_COVERAGE_WARN_THRESHOLD = 0.95
+
+
 def _unique_path(path: str) -> str:
     """Return path unchanged if it doesn't exist, otherwise append (1), (2)… until unique."""
     if not os.path.exists(path):
@@ -79,8 +84,8 @@ class Optical_Downloader:
         # 1. AOI + STAC search
         aoi = AOI(aoi_geojson) if aoi_geojson is not None else AOI.from_four_points(points_list)
         _p(20, "Querying STAC API…")
-        item = self.search.find_best_item(aoi.to_geojson, date_str,
-                                          max_cloud_tile=max_cloud_tile)
+        item, aoi_coverage = self.search.find_best_item(aoi.to_geojson, date_str,
+                                                         max_cloud_tile=max_cloud_tile)
 
         props = item.get("properties", {}) if isinstance(item, dict) \
             else getattr(item, "properties", {})
@@ -101,7 +106,20 @@ class Optical_Downloader:
             target_res     = self.resolution
 
         _p(35, f"Scene: {tile_id}  ({datetime_str})  cloud={cloud_cover_metadata:.1f}%")
-        print(f"[Pipeline] {tile_id} | {datetime_str} | cloud={cloud_cover_metadata}%")
+        print(f"[Pipeline] {tile_id} | {datetime_str} | cloud={cloud_cover_metadata}% "
+              f"| AOI coverage={aoi_coverage * 100:.1f}%")
+
+        aoi_warning = None
+        if aoi_coverage < AOI_COVERAGE_WARN_THRESHOLD:
+            aoi_warning = (
+                f"Your area of interest extends beyond a single scene's coverage — "
+                f"only about {aoi_coverage * 100:.0f}% of it is covered by the selected "
+                f"tile ('{tile_id}'), chosen because it has the largest overlap with "
+                f"your AOI among scenes meeting the cloud threshold. The rest of your "
+                f"AOI is missing from the output."
+            )
+            _p(37, f"⚠ {aoi_warning}")
+            print(f"[Pipeline] WARNING: {aoi_warning}")
 
         # 2. Create scene object
         scene = SentinelScene(item, aoi, resolution=target_res,
@@ -166,13 +184,16 @@ class Optical_Downloader:
                         f"Metadata Cloud Cover: {cloud_cover_metadata:.2f}%\n"
                         f"Calculated Cloud/Shadow: {cloud_shadow_pct:.2f}%\n"
                         f"Valid Pixels: {valid_pct:.2f}%\n"
+                        f"AOI Coverage by Scene: {aoi_coverage * 100:.2f}%\n"
                         f"Tolerance Threshold: {max_cloud_tolerance}%\n"
                         f"Result: {result_str}\n")
+                if aoi_warning:
+                    f.write(f"\nWARNING: {aoi_warning}\n")
 
         # 6. Check tolerance
         if cloud_shadow_pct > max_cloud_tolerance:
             _p(100, f"Skipped — too cloudy ({cloud_shadow_pct:.1f}%)")
-            return {"status": "skipped", "report": report_path}
+            return {"status": "skipped", "report": report_path, "aoi_warning": aoi_warning}
 
         # 7. Download bands, mask, stack, save
         _p(60, "Downloading spectral bands…")
@@ -192,4 +213,5 @@ class Optical_Downloader:
         scene.save_tiff(stacked, output_path, nodata_value=self.fill_value,
                         band_names=band_names_out)
 
-        return {"status": "downloaded", "output_path": output_path, "report": report_path}
+        return {"status": "downloaded", "output_path": output_path, "report": report_path,
+                "aoi_warning": aoi_warning}

@@ -281,7 +281,8 @@ class OpticalDownloader:
 
     def _on_finished(self, result: dict):
         self.dlg.set_running(False)
-        status = result.get("status", "unknown")
+        status      = result.get("status", "unknown")
+        aoi_warning = result.get("aoi_warning")
 
         if status == "downloaded":
             out = result.get("output_path", "")
@@ -300,6 +301,11 @@ class OpticalDownloader:
                 "Skipped", msg, level=Qgis.Warning, duration=6)
         else:
             self.dlg.set_status(f"Finished with status: {status}")
+
+        if aoi_warning:
+            self.iface.messageBar().pushMessage(
+                "Incomplete AOI coverage", aoi_warning, level=Qgis.Warning, duration=15)
+            QgsMessageLog.logMessage(aoi_warning, "OpticalDownloader", Qgis.Warning)
 
     def _on_error(self, error_msg: str):
         self.dlg.set_running(False)

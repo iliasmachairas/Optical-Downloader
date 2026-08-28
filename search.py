@@ -4,6 +4,7 @@ import email.utils
 from datetime import datetime, timezone
 import requests
 import json
+from shapely.geometry import shape as shapely_shape
 
 TOO_MANY_REQUESTS_MSG = (
     "Too many requests to Planetary Computer — please wait a few minutes "
@@ -64,15 +65,41 @@ class SentinelSearch:
                 asset_data["href"] = self._sign_asset_url(asset_data["href"])
         return item
 
+    @staticmethod
+    def _pick_best_overlap(items, aoi_geom):
+        """Among candidate scenes (already filtered by cloud threshold), pick the one
+        covering the largest fraction of the AOI; break ties by lower cloud cover.
+        Returns (item, coverage_fraction)."""
+        aoi_area = aoi_geom.area
+        scored = []
+        for item in items:
+            footprint = item.get("geometry")
+            if not footprint:
+                continue
+            try:
+                fraction = (aoi_geom.intersection(shapely_shape(footprint)).area / aoi_area
+                            if aoi_area > 0 else 0.0)
+            except Exception:
+                fraction = 0.0
+            cloud = item.get("properties", {}).get("eo:cloud_cover", 100.0)
+            scored.append((fraction, -cloud, item))
+
+        if not scored:
+            return items[0], 0.0
+        scored.sort(key=lambda t: (t[0], t[1]), reverse=True)
+        best_fraction, _, best_item = scored[0]
+        return best_item, best_fraction
+
     def find_best_item(self, aoi_json: dict, datetime_str: str, max_cloud_tile: int = 20):
         endpoint = f"{self.stac_url}/search"
         geom     = aoi_json.get("geometry", aoi_json)
+        aoi_geom = shapely_shape(geom)
         body     = {
             "collections": [self.collection],
             "intersects":  geom,
             "datetime":    datetime_str,
             "query":       {"eo:cloud_cover": {"lt": max_cloud_tile}},
-            "limit":       1,
+            "limit":       50,
             "sortby":      [{"field": "eo:cloud_cover", "direction": "asc"}],
         }
 
@@ -86,7 +113,8 @@ class SentinelSearch:
                 if not items:
                     raise RuntimeError(
                         "No scenes found for the given AOI, date range, and cloud threshold.")
-                return self._sign_item_assets(items[0])
+                best_item, coverage = self._pick_best_overlap(items, aoi_geom)
+                return self._sign_item_assets(best_item), coverage
 
             except requests.exceptions.HTTPError as e:
                 if r.status_code == 429:
