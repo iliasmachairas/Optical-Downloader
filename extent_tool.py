@@ -18,15 +18,15 @@ class ExtentDrawingTool(QgsMapTool):
         self.callback    = callback
         self.start_point = None
 
-        self.rb = QgsRubberBand(self.canvas, QgsWkbTypes.PolygonGeometry)
+        self.rb = QgsRubberBand(self.canvas, QgsWkbTypes.GeometryType.PolygonGeometry)
         self.rb.setWidth(2)
         self.rb.setFillColor(QColor(10, 100, 255, 60))
-        self.rb.setBrushStyle(Qt.SolidPattern)
+        self.rb.setBrushStyle(Qt.BrushStyle.SolidPattern)
         self.rb.setStrokeColor(QColor(0, 100, 255, 200))
 
     def canvasPressEvent(self, event):
         self.start_point = self.toMapCoordinates(event.pos())
-        self.rb.reset(QgsWkbTypes.PolygonGeometry)
+        self.rb.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
 
     def canvasMoveEvent(self, event):
         if not self.start_point:
@@ -45,7 +45,7 @@ class ExtentDrawingTool(QgsMapTool):
     def canvasReleaseEvent(self, event):
         end  = self.toMapCoordinates(event.pos())
         rect = QgsRectangle(self.start_point, end)
-        self.rb.reset(QgsWkbTypes.PolygonGeometry)
+        self.rb.reset(QgsWkbTypes.GeometryType.PolygonGeometry)
 
         # Transform to EPSG:4326 if the project CRS differs
         src_crs = QgsProject.instance().crs()

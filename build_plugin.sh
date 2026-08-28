@@ -56,6 +56,12 @@ pushd "$STAGE/$PLUGIN_DIR_NAME" >/dev/null
 for pat in "${EXCLUDES[@]}"; do
   find . -name "$pat" -exec rm -rf {} + 2>/dev/null || true
 done
+# pyrcc5 always regenerates resources.py with `from PyQt5 import QtCore`, which
+# breaks under Qt6-based QGIS builds — patch it here so a forgotten manual fix
+# after recompiling never ships in a release.
+if [ -f resources.py ]; then
+  sed -i 's/^from PyQt5 import QtCore$/from qgis.PyQt import QtCore/' resources.py
+fi
 popd >/dev/null
 
 mkdir -p "$DEST_DIR"

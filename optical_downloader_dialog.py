@@ -87,7 +87,7 @@ class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
         for layer in QgsProject.instance().mapLayers().values():
             if layer.type() != QgsMapLayerType.VectorLayer:
                 continue
-            if layer.geometryType() != QgsWkbTypes.PolygonGeometry:
+            if layer.geometryType() != QgsWkbTypes.GeometryType.PolygonGeometry:
                 continue
             self.comboBox_aoi_layer.addItem(layer.name(), layer.id())
 

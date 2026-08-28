@@ -143,7 +143,7 @@ class OpticalDownloader:
 
     def _start_draw_tool(self):
         """Minimise dialog and activate the rubber-band drawing tool."""
-        self.dlg.setWindowState(Qt.WindowMinimized)
+        self.dlg.setWindowState(Qt.WindowState.WindowMinimized)
         tool = ExtentDrawingTool(self.iface.mapCanvas(), self._handle_extent)
         self.iface.mapCanvas().setMapTool(tool)
         self.dlg.set_status("Draw a rectangle on the map…")
@@ -151,7 +151,7 @@ class OpticalDownloader:
     def _handle_extent(self, xmin, ymin, xmax, ymax):
         """Callback from ExtentDrawingTool — fills coordinate fields."""
         self.dlg.set_aoi_from_extent(xmin, ymin, xmax, ymax)
-        self.dlg.setWindowState(Qt.WindowNoState)
+        self.dlg.setWindowState(Qt.WindowState.WindowNoState)
         self.dlg.raise_()
         self.dlg.activateWindow()
         self.dlg.set_status(
@@ -209,7 +209,7 @@ class OpticalDownloader:
                 xmin, ymin, xmax, ymax = d.get_aoi_coords()
             except ValueError as e:
                 self.iface.messageBar().pushMessage(
-                    "Input Error", str(e), level=Qgis.Critical, duration=5)
+                    "Input Error", str(e), level=Qgis.MessageLevel.Critical, duration=5)
                 return
             points_list = [
                 [xmin, ymax],  # top-left
@@ -223,13 +223,13 @@ class OpticalDownloader:
             if layer is None:
                 self.iface.messageBar().pushMessage(
                     "Input Error", "Please select a polygon layer.",
-                    level=Qgis.Critical, duration=5)
+                    level=Qgis.MessageLevel.Critical, duration=5)
                 return
             try:
                 aoi_geojson = self._aoi_geojson_from_layer(layer)
             except ValueError as e:
                 self.iface.messageBar().pushMessage(
-                    "Input Error", str(e), level=Qgis.Critical, duration=5)
+                    "Input Error", str(e), level=Qgis.MessageLevel.Critical, duration=5)
                 return
             aoi_bounds_msg = f"AOI (layer) '{layer.name()}'"
 
@@ -238,7 +238,7 @@ class OpticalDownloader:
         if not output_dir:
             self.iface.messageBar().pushMessage(
                 "Input Error", "Please select an output directory.",
-                level=Qgis.Critical, duration=5)
+                level=Qgis.MessageLevel.Critical, duration=5)
             return
 
         # Build date range string
@@ -289,7 +289,7 @@ class OpticalDownloader:
             msg = f"Done: {os.path.basename(out)}"
             self.dlg.set_status(msg)
             self.iface.messageBar().pushMessage(
-                "Success", f"Saved to {out}", level=Qgis.Success, duration=6)
+                "Success", f"Saved to {out}", level=Qgis.MessageLevel.Success, duration=6)
             QgsMessageLog.logMessage(f"Output: {out}", "OpticalDownloader")
             if self.dlg.cb_open_output.isChecked() and os.path.isdir(os.path.dirname(out)):
                 os.startfile(os.path.dirname(out))
@@ -298,22 +298,22 @@ class OpticalDownloader:
             msg = "Skipped — cloud cover exceeded tolerance. See report."
             self.dlg.set_status(msg)
             self.iface.messageBar().pushMessage(
-                "Skipped", msg, level=Qgis.Warning, duration=6)
+                "Skipped", msg, level=Qgis.MessageLevel.Warning, duration=6)
         else:
             self.dlg.set_status(f"Finished with status: {status}")
 
         if aoi_warning:
             self.iface.messageBar().pushMessage(
-                "Incomplete AOI coverage", aoi_warning, level=Qgis.Warning, duration=15)
-            QgsMessageLog.logMessage(aoi_warning, "OpticalDownloader", Qgis.Warning)
+                "Incomplete AOI coverage", aoi_warning, level=Qgis.MessageLevel.Warning, duration=15)
+            QgsMessageLog.logMessage(aoi_warning, "OpticalDownloader", Qgis.MessageLevel.Warning)
 
     def _on_error(self, error_msg: str):
         self.dlg.set_running(False)
         self.dlg.set_progress(0)
         self.dlg.set_status("Error — see QGIS log panel for details.")
         self.iface.messageBar().pushMessage(
-            "Error", error_msg.splitlines()[0], level=Qgis.Critical, duration=10)
-        QgsMessageLog.logMessage(error_msg, "OpticalDownloader", Qgis.Critical)
+            "Error", error_msg.splitlines()[0], level=Qgis.MessageLevel.Critical, duration=10)
+        QgsMessageLog.logMessage(error_msg, "OpticalDownloader", Qgis.MessageLevel.Critical)
 
     # ── Entry point ───────────────────────────────────────────────────────────
 

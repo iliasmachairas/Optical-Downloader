@@ -6,7 +6,7 @@
 name=Optical Downloader
 qgisMinimumVersion=3.0
 description=Download cloud-masked Sentinel-2 and Landsat 8/9 imagery from Microsoft Planetary Computer, no account or API key required.
-version=0.1
+version=0.1.2
 author=Ilias Machairas
 email=iliasmachairas@outlook.com
 
@@ -19,8 +19,12 @@ repository=https://github.com/iliasmachairas/Optical-Downloader
 # Recommended items:
 
 hasProcessingProvider=no
-# Uncomment the following line and add your changelog:
-# changelog=
+changelog=0.1.2
+    - First public release.
+    - Search Sentinel-2 L2A / Landsat 8-9 C2 L2 via Microsoft Planetary Computer, no account or API key required.
+    - Define the area of interest by drawing on the map or from an existing polygon layer, clipped exactly to the polygon.
+    - Two-stage cloud/shadow filtering with a configurable AOI tolerance and a written report.
+    - Picks the scene with the largest AOI overlap among candidates, and warns when an AOI spans more than one tile.
 
 # Tags are comma separated with spaces allowed
 tags=sentinel-2, landsat, satellite imagery, remote sensing, download, planetary computer, cloud masking, STAC
@@ -29,7 +33,7 @@ homepage=https://github.com/iliasmachairas/Optical-Downloader
 category=Plugins
 icon=icon.png
 # experimental flag
-experimental=False
+experimental=True
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
