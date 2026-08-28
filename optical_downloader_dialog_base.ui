@@ -188,12 +188,8 @@ Example: 20 skips a scene if more than 20% of your AOI is covered by cloud or sh
   </widget>
 
   <!-- From-layer controls (hidden when "Draw on map" is selected; same row as above) -->
-  <widget class="QLineEdit" name="lineEdit_layer_filter">
-   <property name="geometry"><rect><x>10</x><y>260</y><width>220</width><height>22</height></rect></property>
-   <property name="placeholderText"><string>Search layers…</string></property>
-  </widget>
   <widget class="QComboBox" name="comboBox_aoi_layer">
-   <property name="geometry"><rect><x>240</x><y>260</y><width>400</width><height>22</height></rect></property>
+   <property name="geometry"><rect><x>10</x><y>260</y><width>400</width><height>22</height></rect></property>
   </widget>
   <widget class="QLabel" name="label_aoi_layer_hint">
    <property name="geometry"><rect><x>10</x><y>286</y><width>630</width><height>16</height></rect></property>

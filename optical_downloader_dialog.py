@@ -37,7 +37,7 @@ _DRAW_WIDGETS = (
     "label_right", "lineEdit_right", "label_bottom", "lineEdit_bottom",
 )
 # Widgets shown only in "From layer" AOI mode
-_LAYER_WIDGETS = ("lineEdit_layer_filter", "comboBox_aoi_layer", "label_aoi_layer_hint")
+_LAYER_WIDGETS = ("comboBox_aoi_layer", "label_aoi_layer_hint")
 
 
 class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
@@ -64,8 +64,6 @@ class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
         self.radioBtn_aoi_draw.toggled.connect(self._update_aoi_mode)
         self._update_aoi_mode()
 
-        self.lineEdit_layer_filter.textChanged.connect(self._populate_layer_combo)
-
         self.calendarWidget.selectionChanged.connect(self._update_selected_date_label)
         self._update_selected_date_label()
 
@@ -81,9 +79,8 @@ class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
             self._populate_layer_combo()
 
     def _populate_layer_combo(self):
-        """Refill the layer combo with polygon vector layers matching the filter text."""
-        filter_text = self.lineEdit_layer_filter.text().strip().lower()
-        current_id  = self.comboBox_aoi_layer.currentData()
+        """Refill the layer combo with the project's polygon vector layers."""
+        current_id = self.comboBox_aoi_layer.currentData()
 
         self.comboBox_aoi_layer.blockSignals(True)
         self.comboBox_aoi_layer.clear()
@@ -91,8 +88,6 @@ class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
             if layer.type() != QgsMapLayerType.VectorLayer:
                 continue
             if layer.geometryType() != QgsWkbTypes.PolygonGeometry:
-                continue
-            if filter_text and filter_text not in layer.name().lower():
                 continue
             self.comboBox_aoi_layer.addItem(layer.name(), layer.id())
 
