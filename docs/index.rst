@@ -1,6 +1,10 @@
 Optical Downloader
 ==================
 
+.. image:: _static/icon.png
+   :width: 120px
+   :align: center
+
 A QGIS 3.0+ plugin that downloads cloud-masked satellite imagery from
 **Sentinel-2 L2A** and **Landsat 8/9 Collection 2** via Microsoft Planetary
 Computer's STAC API.
