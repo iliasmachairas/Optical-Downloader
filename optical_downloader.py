@@ -24,9 +24,9 @@
 import os
 from datetime import datetime, timedelta
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QMessageBox
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QUrl
+from qgis.PyQt.QtGui import QIcon, QDesktopServices
+from qgis.PyQt.QtWidgets import QAction, QFileDialog
 from qgis.core import Qgis, QgsMessageLog
 from qgis.gui import QgsMapToolPan
 
@@ -155,25 +155,9 @@ class OpticalDownloader:
         self.iface.mapCanvas().setMapTool(QgsMapToolPan(self.iface.mapCanvas()))
 
     def _show_help(self):
-        QMessageBox.information(
-            self.dlg,
-            "Optical Satellite Downloader — Help",
-            "<b>How to use:</b><ol>"
-            "<li>Select a <b>date</b> and set the ±day search window.</li>"
-            "<li>Choose <b>Sentinel-2 L2A</b> or <b>Landsat 8/9 C2 L2</b>.</li>"
-            "<li>Set <b>cloud thresholds</b>:<br>"
-            "  • <i>Max tile cloud cover</i> — pre-filters STAC search results.<br>"
-            "  • <i>Max AOI cloud tolerance</i> — blocks download if exceeded.</li>"
-            "<li>Tick the <b>cloud types</b> to mask out (SCL / QA_Pixel flags).</li>"
-            "<li>Type AOI coordinates directly <b>or</b> click "
-            "<i>Draw on map</i> and drag a rectangle on the canvas.<br>"
-            "<i>Coordinates are WGS-84 decimal degrees (EPSG:4326).</i></li>"
-            "<li>Choose which <b>bands</b> to download.</li>"
-            "<li>Pick an <b>output folder</b> and click <b>Run Download</b>.</li>"
-            "</ol>"
-            "<b>Output:</b> a GeoTIFF and (optionally) a cloud-statistics "
-            "report are saved to the chosen folder.",
-        )
+        """Open the online documentation (usage guide) in the system's default browser."""
+        QDesktopServices.openUrl(
+            QUrl("https://optical-downloader.readthedocs.io/en/latest/usage.html"))
 
     # ── Download logic ────────────────────────────────────────────────────────
 
