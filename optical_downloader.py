@@ -292,7 +292,10 @@ class OpticalDownloader:
                 "Success", f"Saved to {out}", level=Qgis.MessageLevel.Success, duration=6)
             QgsMessageLog.logMessage(f"Output: {out}", "OpticalDownloader")
             if self.dlg.cb_open_output.isChecked() and os.path.isdir(os.path.dirname(out)):
-                os.startfile(os.path.dirname(out))
+                # Opens the folder via the OS's file-association handler (Windows
+                # ShellExecute); no shell is invoked and no string is parsed as a
+                # command, so shell injection doesn't apply here.
+                os.startfile(os.path.dirname(out))  # nosec B606
 
         elif status == "skipped":
             msg = "Skipped — cloud cover exceeded tolerance. See report."

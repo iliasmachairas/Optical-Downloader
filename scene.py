@@ -209,6 +209,9 @@ class SentinelScene:
             ds = None
             try:
                 os.remove(output_path)
-            except Exception:
-                pass
+            except OSError as cleanup_err:
+                # Best-effort cleanup of the partially-written file — a failure here
+                # (e.g. permission denied, or the file was never created) must not
+                # mask the original write error raised below.
+                print(f"[Scene] Could not remove partial output {output_path}: {cleanup_err}")
             raise RuntimeError(f"Failed to write TIFF: {e}") from e
