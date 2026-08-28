@@ -145,8 +145,17 @@ Example: 20 skips a scene if more than 20% of your AOI is covered by cloud or sh
    <property name="checked"><bool>true</bool></property>
   </widget>
   <widget class="QRadioButton" name="radioBtn_aoi_layer">
-   <property name="geometry"><rect><x>150</x><y>236</y><width>130</width><height>18</height></rect></property>
+   <property name="geometry"><rect><x>150</x><y>236</y><width>90</width><height>18</height></rect></property>
    <property name="text"><string>From layer</string></property>
+  </widget>
+  <widget class="QLabel" name="icon_aoi_layer_crs">
+   <property name="geometry"><rect><x>240</x><y>236</y><width>16</width><height>18</height></rect></property>
+   <property name="font"><font><bold>true</bold></font></property>
+   <property name="styleSheet"><string>color: #0066cc;</string></property>
+   <property name="text"><string>ⓘ</string></property>
+   <property name="toolTip">
+    <string>Any CRS works — the layer's coordinate reference system doesn't matter. Its features are automatically reprojected to WGS-84 (EPSG:4326) before searching, whatever projection the layer is currently in.</string>
+   </property>
   </widget>
 
   <!-- Draw-on-map controls (hidden when "From layer" is selected) -->
