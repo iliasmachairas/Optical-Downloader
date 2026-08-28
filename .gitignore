@@ -6,17 +6,31 @@ CLAUDE.md
 __pycache__/
 *.py[cod]
 *.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Distribution / packaging
+dist/
+build/
+*.zip
+
+# Virtual environments
+.env
+.venv
+env/
+
+# QGIS / editor cruft
+*.qgis2
+*.bak
 
 # Output
 output/
 outputs/
+*.tif
+*.tiff
 
-# Build artifacts
-*.zip
-build/
-dist/
+# Sphinx build output
 docs/_build/
-.pytest_cache/
 
 # Editor/OS
 .vscode/

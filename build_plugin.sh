@@ -39,15 +39,10 @@ echo
 # runtime). docs/ and .readthedocs.yaml are the Sphinx/Read the Docs source
 # — built and hosted separately at readthedocs.org, not needed inside QGIS.
 # help/ is the unused Plugin Builder Sphinx scaffold, superseded by docs/.
-# The notebook, drafted UI, and note files are working notes, not plugin
-# assets — main.py/config.py/verify_config.py ARE shipped: they're the
-# standalone CLI entry point documented in the README.
 EXCLUDES=(
     "__pycache__" "*.pyc" ".git" ".gitignore" ".claude" "quickstart.py" "*.zip"
     "build" "dist" ".pytest_cache" "test" "build_plugin.sh" "docs" ".readthedocs.yaml"
-    "help" "output" "outputs" "Right_syntax"
-    "S2__algorithm_lakes.ipynb" "lake_water_quality_update_20250102.ui" "lake.png"
-    "draft-repo.txt" "instructions.txt" "to_do_list.txt"
+    "help" "output" "outputs"
 )
 
 STAGE="$(mktemp -d)"

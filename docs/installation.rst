@@ -1,41 +1,60 @@
 Installation
 ============
 
-Requirements
-------------
+Prerequisites
+-------------
 
-* QGIS 3.0 or newer.
-* No Planetary Computer account or API key — Sentinel-2 and Landsat are public,
-  unauthenticated collections.
++---------------------+-------------------------------------------+
+| Requirement         | Notes                                     |
++=====================+===========================================+
+| QGIS ≥ 3.0          | Bundled with Python 3 and GDAL            |
++---------------------+-------------------------------------------+
+| Python 3.x          | Provided by the QGIS installer            |
++---------------------+-------------------------------------------+
+| GDAL                | Provided by the QGIS installer            |
++---------------------+-------------------------------------------+
+| ``shapely``         | Must be installed separately (see below)  |
++---------------------+-------------------------------------------+
+| ``requests``        | Must be installed separately (see below)  |
++---------------------+-------------------------------------------+
 
-Installing the plugin
-----------------------
+Installing Python dependencies
+-------------------------------
 
-From a ZIP file
-^^^^^^^^^^^^^^^^
-
-#. Build the ZIP with ``./build_plugin.sh`` from the plugin source, or download a
-   release from the `GitHub repository
-   <https://github.com/iliasmachairas/Optical-Downloader>`_.
-#. In QGIS, open **Plugins -> Manage and Install Plugins -> Install from ZIP**.
-#. Select the downloaded ZIP and click **Install Plugin**.
-
-From the QGIS Plugin Repository
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Once published, search for **Optical Downloader** under **Plugins -> Manage and
-Install Plugins** and click **Install Plugin**.
-
-Python dependencies
---------------------
-
-The plugin needs ``requests``, ``numpy``, and ``shapely`` on top of what QGIS
-already ships (GDAL/OSGeo, PyQt):
+Open the **OSGeo4W Shell** (available in the Start Menu after installing QGIS)
+and run:
 
 .. code-block:: bash
 
-   pip install -r requirements.txt
+   pip install shapely requests
 
-GDAL must be available to QGIS's own Python interpreter — it already is in any
-standard QGIS install, so this step is normally only needed for the standalone
-command-line workflow (see :doc:`usage`).
+.. note::
+   Do **not** use a regular terminal or Anaconda environment — the packages
+   must be installed into the Python that QGIS uses.
+
+Deploying the plugin
+--------------------
+
+Option 1 — Copy manually
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Copy the ``Optical-Downloader/`` folder to the QGIS plugins directory:
+
+.. code-block:: text
+
+   C:\Users\<your-username>\AppData\Roaming\QGIS\QGIS3\profiles\default\python\plugins\
+
+The folder name inside the plugins directory must be ``Optical-Downloader``.
+
+Enabling the plugin
+-------------------
+
+1. Open QGIS.
+2. Go to **Plugins → Manage and Install Plugins**.
+3. Select the **Installed** tab.
+4. Tick the checkbox next to **Optical Downloader**.
+
+The plugin icon (|icon|) appears in the QGIS toolbar.
+
+.. |icon| replace:: 🛰
+

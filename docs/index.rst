@@ -1,20 +1,13 @@
 Optical Downloader
-====================
+==================
 
-.. image:: _static/icon.png
-   :width: 48px
-   :align: left
-
-Optical Downloader is a QGIS 3 plugin that searches `Microsoft Planetary Computer
-<https://planetarycomputer.microsoft.com/>`_ for the least-cloudy Sentinel-2 L2A or
-Landsat 8/9 Collection 2 L2 scene over an area and date you choose, applies
-cloud/shadow masking, and writes a georeferenced multi-band GeoTIFF.
+A QGIS 3.0+ plugin that downloads cloud-masked satellite imagery from
+**Sentinel-2 L2A** and **Landsat 8/9 Collection 2** via Microsoft Planetary
+Computer's STAC API.
 
 No account or API key is required — Sentinel-2 and Landsat are in Planetary
 Computer's open, public collection tier, so the plugin searches and downloads
 anonymously.
-
-Plugin source: https://github.com/iliasmachairas/Optical-Downloader
 
 .. toctree::
    :maxdepth: 2
@@ -22,4 +15,37 @@ Plugin source: https://github.com/iliasmachairas/Optical-Downloader
 
    installation
    usage
-   platforms
+   architecture
+   troubleshooting
+
+Overview
+--------
+
+Optical Downloader lets you select a date, draw an area of interest on the
+QGIS map canvas, and receive a georeferenced, cloud-masked GeoTIFF — all
+without leaving QGIS. The download runs in a background thread so the
+interface stays responsive throughout.
+
+**Supported platforms**
+
+* Sentinel-2 L2A (10 m resolution)
+* Landsat 8/9 Collection 2 Level-2 (30 m resolution)
+
+**Key capabilities**
+
+* Two-stage cloud filtering (STAC pre-filter + per-AOI tolerance check)
+* Five maskable cloud classes using the Sentinel-2 SCL band
+* Three band presets: RGB · RGB + NIR + SWIR · All bands
+* Interactive rubber-band AOI drawing directly on the QGIS canvas
+* Cloud statistics report saved alongside the output GeoTIFF
+
+Source code
+-----------
+
+https://github.com/iliasmachairas/Optical-Downloader
+
+Indices and tables
+------------------
+
+* :ref:`genindex`
+* :ref:`search`

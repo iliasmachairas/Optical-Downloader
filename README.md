@@ -56,12 +56,14 @@ flowchart LR
 
 **Dependencies**
 
+Open the OSGeo4W Shell that ships with QGIS (so packages land in QGIS's own Python, not your
+system one) and run:
+
 ```bash
-pip install -r requirements.txt
+pip install shapely requests
 ```
 
-GDAL must be available to QGIS's Python (it already is, in any standard QGIS install) — `requests`,
-`numpy`, and `shapely` are the only extra packages the plugin needs.
+GDAL is already available to QGIS's Python in any standard QGIS install.
 
 ## 🚀 Usage
 
@@ -95,17 +97,6 @@ If the best available scene exceeds your cloud tolerance, only the report is wri
 
 Band values follow each collection's own scaling (Sentinel-2 reflectance × 10000; Landsat
 Collection 2 Level-2 scaling).
-
-### Command-line / batch use
-
-For scripted or repeated downloads outside QGIS, edit `config.py` and run:
-
-```bash
-python verify_config.py   # sanity-check the resolved date range first
-python main.py
-```
-
-This drives the same `pipeline.py` the QGIS dialog uses, so behaviour is identical either way.
 
 ## 📖 Documentation
 
@@ -162,7 +153,6 @@ pipeline.py                        -> orchestrates search -> cloud analysis -> d
 search.py                          -> STAC query + anonymous SAS URL signing
 scene.py                           -> GDAL/VSICURL streaming, reprojection, resampling, GeoTIFF write
 aoi.py                             -> AOI bounding-box / GeoJSON helper
-main.py / config.py                -> standalone CLI entry point, drives the same pipeline.py
 ```
 
 ## ⚖️ License
