@@ -34,8 +34,9 @@ from qgis.core import (
 )
 from qgis.gui import QgsMapToolPan
 
-# Initialize Qt resources from file resources.py
-from .resources import *
+# Initialize Qt resources from file resources.py (registers itself at import
+# time via qInitResources(); no names from it are referenced directly).
+from . import resources  # noqa: F401
 # Import the code for the dialog
 from .optical_downloader_dialog import OpticalDownloaderDialog
 from .extent_tool import ExtentDrawingTool
