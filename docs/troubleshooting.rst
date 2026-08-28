@@ -18,6 +18,27 @@ The STAC search returned no results.
   to 80 or 100 to check whether *any* scene exists at all.
 * Try widening the search window with the **± days** spin box.
 
+"Your area of interest extends beyond a single scene's coverage"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each Sentinel-2/Landsat search returns exactly **one** scene — a single
+Sentinel-2 tile is roughly 110×110 km, a Landsat scene roughly 185×185 km.
+If your AOI is larger than that, or straddles the boundary between two
+tiles, one scene cannot fully cover it.
+
+Among the scenes meeting your cloud threshold, the plugin picks the one
+with the **largest overlap with your AOI** (not simply the least cloudy
+one — a scene barely touching your AOI is never preferred over one that
+actually covers it, even if it's a little more cloudy). If the best match
+still doesn't cover the whole AOI, you'll see this warning in the message
+bar, the log, and the report file, and the part of the AOI outside that
+scene's footprint will be missing from the output GeoTIFF.
+
+This isn't a bug to fix by retrying — it's inherent to downloading a
+single scene. If you need full coverage of a large AOI, download each
+tile separately (e.g. split your AOI into smaller pieces that each fit
+within one scene) and mosaic the results yourself in QGIS.
+
 "Scene skipped — too cloudy over AOI"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -6,7 +6,7 @@
 name=Optical Downloader
 qgisMinimumVersion=3.0
 description=Download cloud-masked Sentinel-2 and Landsat 8/9 imagery from Microsoft Planetary Computer, no account or API key required.
-version=0.1.4
+version=0.1.5
 author=Ilias Machairas
 email=iliasmachairas@outlook.com
 
@@ -19,7 +19,10 @@ repository=https://github.com/iliasmachairas/Optical-Downloader
 # Recommended items:
 
 hasProcessingProvider=no
-changelog=0.1.4
+changelog=0.1.5
+    - Documented the largest-overlap tile-selection behavior for AOIs spanning more
+      than one scene: README, docs/troubleshooting.rst, and a new in-dialog info icon.
+    0.1.4
     - Replaced the wildcard `from .resources import *` with a plain module import
       (flake8 F403; the module was only ever needed for its registration side effect).
     - Removed a leftover Python 2 compat call in plugin_upload.py that referenced an

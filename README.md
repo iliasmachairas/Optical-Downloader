@@ -34,7 +34,8 @@ flowchart LR
 ## ✨ Features
 
 - **Two platforms** — Sentinel-2 L2A (10 m) and Landsat 8/9 Collection 2 L2 (30 m).
-- **Draw-on-map AOI** — rubber-band a rectangle on the canvas, or type coordinates directly.
+- **Two ways to define the AOI** — rubber-band a rectangle on the canvas, or pick an existing
+  polygon layer; the output is clipped exactly to that polygon, not just its bounding box.
 - **Two cloud thresholds** — a tile-level pre-filter for the STAC search, and a stricter
   AOI-specific tolerance that blocks the download outright if exceeded.
 - **Configurable cloud/shadow masking** — tick which SCL / QA_Pixel flags to exclude.
@@ -43,6 +44,10 @@ flowchart LR
   progress bar and status messages.
 - **Always writes a report** — cloud statistics are saved even when a scene is rejected for
   being too cloudy, so you know why.
+- **Largest-overlap tile selection** — each search returns one scene (a single Sentinel-2/Landsat
+  tile), so if your AOI is bigger than that or straddles a tile boundary, the plugin picks the
+  scene covering the most of your AOI (not just the least cloudy one) and warns you if the
+  result still doesn't cover it all.
 
 ## 📦 Installation
 
