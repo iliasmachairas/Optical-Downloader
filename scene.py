@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import gc
+import json
 import numpy as np
-from osgeo import gdal, osr
+from osgeo import gdal, osr, ogr
 from .aoi import AOI
 
 
@@ -128,6 +129,41 @@ class SentinelScene:
                 gc.collect()
 
         return result
+
+    def build_aoi_mask(self, aoi_geometry: dict, shape):
+        """Rasterize an AOI polygon (EPSG:4326 GeoJSON geometry) onto the raster grid
+        established by the last load_bands() call. Returns a bool array (True = inside
+        the polygon) matching `shape` (height, width)."""
+        if self._geotransform is None or self._projection is None:
+            raise ValueError("No geotransform — load at least one band first.")
+        height, width = shape
+
+        src_srs = osr.SpatialReference()
+        src_srs.ImportFromEPSG(4326)
+        src_srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+        dst_srs = osr.SpatialReference()
+        dst_srs.ImportFromWkt(self._projection)
+        xform = osr.CoordinateTransformation(src_srs, dst_srs)
+
+        ogr_geom = ogr.CreateGeometryFromJson(json.dumps(aoi_geometry))
+        if ogr_geom is None:
+            raise ValueError("Could not parse the AOI geometry.")
+        ogr_geom.Transform(xform)
+
+        mem_ds = ogr.GetDriverByName("MEM").CreateDataSource("aoi_mask")
+        mem_layer = mem_ds.CreateLayer("aoi", dst_srs, ogr.wkbMultiPolygon)
+        feature = ogr.Feature(mem_layer.GetLayerDefn())
+        feature.SetGeometry(ogr_geom)
+        mem_layer.CreateFeature(feature)
+
+        mask_ds = gdal.GetDriverByName("MEM").Create("", width, height, 1, gdal.GDT_Byte)
+        mask_ds.SetGeoTransform(self._geotransform)
+        mask_ds.SetProjection(self._projection)
+        gdal.RasterizeLayer(mask_ds, [1], mem_layer, burn_values=[1])
+
+        mask = mask_ds.GetRasterBand(1).ReadAsArray().astype(bool)
+        mem_ds = mask_ds = None
+        return mask
 
     def save_tiff(self, array, output_path, nodata_value=None, band_names=None):
         if self._geotransform is None or self._projection is None:

@@ -29,7 +29,8 @@ class DownloadWorker(QThread):
             )
 
             result = pipeline.run(
-                points_list=self.params["points_list"],
+                points_list=self.params.get("points_list"),
+                aoi_geojson=self.params.get("aoi_geojson"),
                 date_str=self.params["date_str"],
                 max_cloud_tile=self.params["max_cloud_tile"],
                 max_cloud_tolerance=self.params["max_cloud_tolerance"],

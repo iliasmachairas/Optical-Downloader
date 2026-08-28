@@ -26,9 +26,18 @@ import os
 
 from qgis.PyQt import uic, QtWidgets
 from qgis.PyQt.QtWidgets import QButtonGroup
+from qgis.core import QgsProject, QgsWkbTypes, QgsMapLayerType
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'optical_downloader_dialog_base.ui'))
+
+# Widgets shown only in "Draw on map" AOI mode
+_DRAW_WIDGETS = (
+    "btn_draw_area", "label_top", "lineEdit_top", "label_left", "lineEdit_left",
+    "label_right", "lineEdit_right", "label_bottom", "lineEdit_bottom",
+)
+# Widgets shown only in "From layer" AOI mode
+_LAYER_WIDGETS = ("lineEdit_layer_filter", "comboBox_aoi_layer", "label_aoi_layer_hint")
 
 
 class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
@@ -48,6 +57,56 @@ class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
         self.bandGroup.addButton(self.radioBtn_all, 0)
         self.bandGroup.addButton(self.radioBtn_rgb, 1)
         self.bandGroup.addButton(self.radioBtn_rgb_nir_swir, 2)
+
+        self.aoiGroup = QButtonGroup(self)
+        self.aoiGroup.addButton(self.radioBtn_aoi_draw, 0)
+        self.aoiGroup.addButton(self.radioBtn_aoi_layer, 1)
+        self.radioBtn_aoi_draw.toggled.connect(self._update_aoi_mode)
+        self._update_aoi_mode()
+
+        self.lineEdit_layer_filter.textChanged.connect(self._populate_layer_combo)
+
+        self.calendarWidget.selectionChanged.connect(self._update_selected_date_label)
+        self._update_selected_date_label()
+
+    # ── AOI mode ──────────────────────────────────────────────────────────────
+
+    def _update_aoi_mode(self):
+        draw_mode = self.radioBtn_aoi_draw.isChecked()
+        for name in _DRAW_WIDGETS:
+            getattr(self, name).setVisible(draw_mode)
+        for name in _LAYER_WIDGETS:
+            getattr(self, name).setVisible(not draw_mode)
+        if not draw_mode:
+            self._populate_layer_combo()
+
+    def _populate_layer_combo(self):
+        """Refill the layer combo with polygon vector layers matching the filter text."""
+        filter_text = self.lineEdit_layer_filter.text().strip().lower()
+        current_id  = self.comboBox_aoi_layer.currentData()
+
+        self.comboBox_aoi_layer.blockSignals(True)
+        self.comboBox_aoi_layer.clear()
+        for layer in QgsProject.instance().mapLayers().values():
+            if layer.type() != QgsMapLayerType.VectorLayer:
+                continue
+            if layer.geometryType() != QgsWkbTypes.PolygonGeometry:
+                continue
+            if filter_text and filter_text not in layer.name().lower():
+                continue
+            self.comboBox_aoi_layer.addItem(layer.name(), layer.id())
+
+        if current_id is not None:
+            idx = self.comboBox_aoi_layer.findData(current_id)
+            if idx >= 0:
+                self.comboBox_aoi_layer.setCurrentIndex(idx)
+        self.comboBox_aoi_layer.blockSignals(False)
+
+    # ── Date label ────────────────────────────────────────────────────────────
+
+    def _update_selected_date_label(self):
+        date_str = self.calendarWidget.selectedDate().toString("yyyy-MM-dd")
+        self.label_selectedDate.setText(f"Selected: {date_str}")
 
     # ── Typed getters ─────────────────────────────────────────────────────────
 
@@ -71,6 +130,9 @@ class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
         }
         return [name for cb, name in mapping.items() if cb.isChecked()]
 
+    def get_aoi_source(self):
+        return "draw" if self.radioBtn_aoi_draw.isChecked() else "layer"
+
     def get_aoi_coords(self):
         """Return (xmin, ymin, xmax, ymax) as floats, raise ValueError if invalid."""
         try:
@@ -83,6 +145,13 @@ class OpticalDownloaderDialog(QtWidgets.QDialog, FORM_CLASS):
         if left >= right or bottom >= top:
             raise ValueError("Invalid AOI: left < right and bottom < top required.")
         return left, bottom, right, top  # xmin, ymin, xmax, ymax
+
+    def get_aoi_layer(self):
+        """Return the QgsVectorLayer selected in the 'From layer' combo, or None."""
+        layer_id = self.comboBox_aoi_layer.currentData()
+        if layer_id is None:
+            return None
+        return QgsProject.instance().mapLayer(layer_id)
 
     def get_extra_days(self):
         return self.spinBox_extraDays.value()

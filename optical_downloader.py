@@ -22,12 +22,16 @@
  ***************************************************************************/
 """
 import os
+import json
 from datetime import datetime, timedelta
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QUrl
 from qgis.PyQt.QtGui import QIcon, QDesktopServices
 from qgis.PyQt.QtWidgets import QAction, QFileDialog
-from qgis.core import Qgis, QgsMessageLog
+from qgis.core import (
+    Qgis, QgsMessageLog, QgsCoordinateReferenceSystem, QgsCoordinateTransform,
+    QgsGeometry, QgsProject,
+)
 from qgis.gui import QgsMapToolPan
 
 # Initialize Qt resources from file resources.py
@@ -161,16 +165,73 @@ class OpticalDownloader:
 
     # ── Download logic ────────────────────────────────────────────────────────
 
+    def _aoi_geojson_from_layer(self, layer):
+        """Build an EPSG:4326 GeoJSON Feature covering every feature in `layer`,
+        reprojected and unioned into a single (multi)polygon geometry."""
+        if layer.featureCount() == 0:
+            raise ValueError(f"Layer '{layer.name()}' has no features.")
+
+        wgs84     = QgsCoordinateReferenceSystem("EPSG:4326")
+        transform = QgsCoordinateTransform(layer.crs(), wgs84, QgsProject.instance())
+
+        geometries = []
+        for feature in layer.getFeatures():
+            geom = feature.geometry()
+            if geom is None or geom.isEmpty():
+                continue
+            geom = QgsGeometry(geom)
+            geom.transform(transform)
+            geometries.append(geom)
+
+        if not geometries:
+            raise ValueError(f"Layer '{layer.name()}' has no valid geometries.")
+
+        union = QgsGeometry.unaryUnion(geometries)
+        if union.isEmpty():
+            raise ValueError(f"Could not combine the geometries in '{layer.name()}'.")
+
+        return {
+            "type": "Feature",
+            "properties": {"name": layer.name()},
+            "geometry": json.loads(union.asJson()),
+        }
+
     def _run_download(self):
         d = self.dlg
 
         # Validate AOI
-        try:
-            xmin, ymin, xmax, ymax = d.get_aoi_coords()
-        except ValueError as e:
-            self.iface.messageBar().pushMessage(
-                "Input Error", str(e), level=Qgis.Critical, duration=5)
-            return
+        points_list = None
+        aoi_geojson = None
+        aoi_bounds_msg = ""
+
+        if d.get_aoi_source() == "draw":
+            try:
+                xmin, ymin, xmax, ymax = d.get_aoi_coords()
+            except ValueError as e:
+                self.iface.messageBar().pushMessage(
+                    "Input Error", str(e), level=Qgis.Critical, duration=5)
+                return
+            points_list = [
+                [xmin, ymax],  # top-left
+                [xmax, ymax],  # top-right
+                [xmax, ymin],  # bottom-right
+                [xmin, ymin],  # bottom-left
+            ]
+            aoi_bounds_msg = f"AOI (drawn) ({xmin:.4f},{ymin:.4f})→({xmax:.4f},{ymax:.4f})"
+        else:
+            layer = d.get_aoi_layer()
+            if layer is None:
+                self.iface.messageBar().pushMessage(
+                    "Input Error", "Please select a polygon layer.",
+                    level=Qgis.Critical, duration=5)
+                return
+            try:
+                aoi_geojson = self._aoi_geojson_from_layer(layer)
+            except ValueError as e:
+                self.iface.messageBar().pushMessage(
+                    "Input Error", str(e), level=Qgis.Critical, duration=5)
+                return
+            aoi_bounds_msg = f"AOI (layer) '{layer.name()}'"
 
         # Validate output directory
         output_dir = d.get_output_dir()
@@ -189,15 +250,9 @@ class OpticalDownloader:
             f"{(dt + timedelta(days=extra_days)).strftime('%Y-%m-%d')}"
         )
 
-        points_list = [
-            [xmin, ymax],  # top-left
-            [xmax, ymax],  # top-right
-            [xmax, ymin],  # bottom-right
-            [xmin, ymin],  # bottom-left
-        ]
-
         params = {
             "points_list":         points_list,
+            "aoi_geojson":         aoi_geojson,
             "date_str":            date_str,
             "platform":            d.get_platform(),
             "band_selection":      d.get_band_selection(),
@@ -209,8 +264,7 @@ class OpticalDownloader:
         }
 
         QgsMessageLog.logMessage(
-            f"Download started — {params['platform']} | {date_str} | "
-            f"AOI ({xmin:.4f},{ymin:.4f})→({xmax:.4f},{ymax:.4f})",
+            f"Download started — {params['platform']} | {date_str} | {aoi_bounds_msg}",
             "OpticalDownloader",
         )
 

@@ -58,8 +58,8 @@ class Optical_Downloader:
 
     def run(
         self,
-        points_list: list,
-        date_str: str,
+        points_list: list = None,
+        date_str: str = None,
         max_cloud_tile: int = 100,
         max_cloud_tolerance: int = 20,
         platform: str = "sentinel-2-l2a",
@@ -68,6 +68,7 @@ class Optical_Downloader:
         excluded_flags: list = None,
         create_report: bool = True,
         progress_callback=None,
+        aoi_geojson: dict = None,
     ):
         def _p(pct, msg=""):
             if progress_callback:
@@ -76,7 +77,7 @@ class Optical_Downloader:
         excluded_flags = excluded_flags or []
 
         # 1. AOI + STAC search
-        aoi  = AOI.from_four_points(points_list)
+        aoi = AOI(aoi_geojson) if aoi_geojson is not None else AOI.from_four_points(points_list)
         _p(20, "Querying STAC API…")
         item = self.search.find_best_item(aoi.to_geojson, date_str,
                                           max_cloud_tile=max_cloud_tile)
@@ -128,15 +129,24 @@ class Optical_Downloader:
             invalid_mask = ((qi & (1<<0)) | (qi & (1<<1)) |
                             (qi & (1<<2)) | (qi & (1<<3)) | (qi & (1<<4))) > 0
             valid_mask   = ~invalid_mask
-            cloud_pixels = int(np.sum((qi & ((1<<1)|(1<<2)|(1<<3))) > 0))
+            cloud_mask   = (qi & ((1<<1)|(1<<2)|(1<<3))) > 0
         else:
             scl             = qa_data.astype(int)
             base_excl       = {SCL_FLAGS[f] for f in excluded_flags if f in SCL_FLAGS}
             base_excl      |= {0, 1}  # always exclude No Data / Saturated
             valid_mask      = ~np.isin(scl, sorted(base_excl))
-            cloud_pixels    = int(np.sum(np.isin(scl, [3, 8, 9, 10])))
+            cloud_mask      = np.isin(scl, [3, 8, 9, 10])
 
-        total_pixels     = valid_mask.size
+        # Clip to the AOI polygon itself, not just its bounding box — a no-op for a
+        # drawn rectangle (its polygon *is* the bbox), but real for a "from layer" AOI.
+        aoi_mask = scene.build_aoi_mask(aoi.to_geojson["geometry"], qa_data.shape)
+        valid_mask = valid_mask & aoi_mask
+
+        total_pixels = int(np.sum(aoi_mask))
+        if total_pixels == 0:
+            raise RuntimeError(
+                "The selected area of interest does not overlap this scene.")
+        cloud_pixels     = int(np.sum(cloud_mask & aoi_mask))
         valid_pct        = (int(np.sum(valid_mask)) / total_pixels) * 100
         cloud_shadow_pct = (cloud_pixels / total_pixels) * 100
 

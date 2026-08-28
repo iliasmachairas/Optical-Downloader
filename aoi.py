@@ -8,11 +8,19 @@ class AOI:
             raise ValueError("GeoJSON must contain a 'geometry' field.")
         geom = geojson["geometry"]
         if geom["type"] == "Polygon":
-            coords = geom["coordinates"][0]
-            if coords[0] != coords[-1]:
-                geom["coordinates"][0].append(coords[0])
+            self._close_rings(geom["coordinates"])
+        elif geom["type"] == "MultiPolygon":
+            for polygon in geom["coordinates"]:
+                self._close_rings(polygon)
         self.geojson  = geojson
         self.geometry = shape(geom)
+
+    @staticmethod
+    def _close_rings(rings):
+        """Close each linear ring in-place (first point == last point) per the GeoJSON spec."""
+        for ring in rings:
+            if ring[0] != ring[-1]:
+                ring.append(ring[0])
 
     @property
     def bounds(self):
